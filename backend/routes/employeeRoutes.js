@@ -1,26 +1,14 @@
 import express from 'express';
+import {createEmployee, getEmployees, getEmployeeById, deleteEmployeeById,updateEmployeeById} from "../controllers/employeeController.js"
+import { authenticateToken, roleMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-import Employee from '../models/employee.js';
+//const empRoute = router.post("/", createEmployee);
+router.post('/',[authenticateToken,roleMiddleware(['admin','manager'])],createEmployee);
+router.get('/',authenticateToken,getEmployees);
+router.get('/:id',authenticateToken,getEmployeeById );
+router.delete('/:id', [authenticateToken,roleMiddleware(['admin','manager'])],deleteEmployeeById);
+router.put('/:id',[authenticateToken,roleMiddleware(['admin','manager'])],updateEmployeeById);
 
-const empRoute = router.post("/", async (req, res) => {
-    try {
-        const employee = new Employee(req.body);
-        const savedEmployee = await employee.save();
-        res.status(201).json({
-            success: true,
-            message: "Employe created successfully",
-            data: savedEmployee
-        });
-    } catch (error) {
-        console.error("Error creating employee:", error);
-        res.status(500).json({
-            success: false,
-            message: "Error creating employee",
-            error: error.message
-        });
-    }
-});
-
-export default empRoute;
+export default router;
